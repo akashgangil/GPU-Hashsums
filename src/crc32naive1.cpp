@@ -51,12 +51,5 @@ int main(void)
     printf("CRC    : %s\n", itoa(wombat(data, 11), 2));
     printf("%s\n", itoa(2, 2));
     
-    stopwatch_t* sw = stopwatch_create();
-    stopwatch_init();
-    stopwatch_start(sw);
-  sleep(3);
-  stopwatch_stop(sw);   
-  printf("%Lg", stopwatch_elapsed(sw));
-  stopwatch_destroy(sw);
     return 0;
 }
