@@ -5,7 +5,8 @@
 
 #include "timer.h"
 
-#define QUOTIENT 0x04c11db7
+#define CRC_POLY_MPEG 0x04c11db7
+#define CRC_POLY_SCSI 0x1EDC6F41
 
 unsigned int wombat(unsigned char *data, int len)
 {
@@ -22,7 +23,7 @@ unsigned int wombat(unsigned char *data, int len)
         {
             if ((octet >> 7) ^ (result >> 31))
             {
-                result = (result << 1) ^ QUOTIENT;
+                result = (result << 1) ^ CRC_POLY_SCSI;
             }
             else
             {
@@ -49,7 +50,6 @@ int main(void)
     unsigned char* data = (unsigned char*)"10101111100";
     printf("Message: %s   Length:%zd\n", data, strlen((const char*)data));
     printf("CRC    : %s\n", itoa(wombat(data, 11), 2));
-    printf("%s\n", itoa(2, 2));
     
     return 0;
 }
