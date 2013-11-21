@@ -2,6 +2,9 @@
 extern "C" {
 #endif
 
+struct stopwatch_t;
+
+
 struct stopwatch_t * stopwatch_create (void);
 void stopwatch_destroy (struct stopwatch_t* T);
 void stopwatch_init (void);

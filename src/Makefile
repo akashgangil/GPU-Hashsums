@@ -3,10 +3,10 @@ CXX = gcc
 
 all: crc 
 
-crc: crc.o 
-	$(CXX) -o crc main.c crc.o 
+crc: crc.o timer.o
+	$(CXX) -o crc main.c crc.o timer.o
 	
-crc.o: crc.c
+crc.o: crc.h
 	$(CXX) -c crc.c
 
 timer.o: timer.h
