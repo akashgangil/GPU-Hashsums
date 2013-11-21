@@ -1,16 +1,15 @@
 
-CXX = g++
-CXXFLAGS = -Wall -g
+CXX = gcc
 
-all: crc32naive1 
+all: crc 
 
-crc32naive1: crc32naive1.o timer.o
-	$(CXX) $(CXXFLAGS) -o crc32naive1 crc32naive1.o timer.o
+crc: crc.o 
+	$(CXX) -o crc main.c crc.o 
 	
-crc32naive1.o: crc32naive1.cpp timer.h
-	$(CXX) $(CXXFLAGS) -c crc32naive1.cpp
+crc.o: crc.c
+	$(CXX) -c crc.c
 
 timer.o: timer.h
 
 clean:
-	rm *.o crc32naive1
+	rm *.o crc
