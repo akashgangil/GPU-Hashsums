@@ -8,7 +8,7 @@
 //Select the CRC standard from the list that follows.
 #define CRC32_MPEG
 
-typedef unsigned long  crc;
+typedef int crc;
 
 #if defined(CRC32_MPEG)
 
