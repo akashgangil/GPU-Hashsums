@@ -51,7 +51,7 @@ static unsigned long reflect(unsigned long data, unsigned char nBits)
 //Compute the CRC of a given message.
 crc crcSlow(unsigned char const message[], int nBytes)
 {
-    crc            remainder = INITIAL_REMAINDER;
+  crc            remainder = INITIAL_REMAINDER;
 	int            byte;
 	unsigned char  bit;
 
@@ -89,7 +89,7 @@ crc  crcTable[256];
 //Populate the partial CRC lookup table.
 void crcInit(void)
 {
-    crc			   remainder;
+  crc			   remainder;
 	int			   dividend;
 	unsigned char  bit;
 
