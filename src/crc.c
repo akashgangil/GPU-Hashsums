@@ -55,7 +55,6 @@ crc crcSlow(unsigned char const message[], int nBytes)
 	int            byte;
 	unsigned char  bit;
 
-
     //Perform modulo-2 division, a byte at a time.
     for (byte = 0; byte < nBytes; ++byte)
     {
@@ -79,7 +78,6 @@ crc crcSlow(unsigned char const message[], int nBytes)
 
     //The final remainder is the CRC result.
     return (REFLECT_REMAINDER(remainder) ^ FINAL_XOR_VALUE);
-
 }   
 
 
