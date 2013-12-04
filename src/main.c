@@ -23,6 +23,15 @@ void main(void)
   stopwatch_init();
   stopwatch_start(sw);
 
+  // Compute the CRC of the test message, slowly.
+	printf("The crcSlow() of %s is 0x%X\n", test, crcSlow(test, strlen(test)));
+  
+  stopwatch_stop(sw);   
+	
+  printf("%Lg\n", stopwatch_elapsed(sw));
+ 
+  stopwatch_start(sw);
+
   int result1 = crcSlow(test1, 4);
   printf("Part 1: %X\n", result1);
 
@@ -31,16 +40,9 @@ void main(void)
 	
   unsigned long ans = crc32_combine(result1, result2, 4);
 
-  printf("Combined CRC 0x%lx\n",ans);
+  stopwatch_stop(sw);
 
-
-  // Compute the CRC of the test message, slowly.
-	printf("The crcSlow() of %s is 0x%X\n", test, crcSlow(test, strlen(test)));
-  
-  stopwatch_stop(sw);   
-	
-  printf("%Lg\n", stopwatch_elapsed(sw));
-  
+  printf("Combined CRC 0x%lx     %Lg \n",ans, stopwatch_elapsed(sw));
   
   //Compute the CRC of the test message, more efficiently.	 
 	crcInit();
