@@ -15,4 +15,4 @@ crc.o: crc.h
 timer.o: timer.h
 
 clean:
-	rm *.o crc parallel_crc
+	rm *.o crc 
