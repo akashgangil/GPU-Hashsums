@@ -10,9 +10,9 @@ unsigned long crc32_combine(unsigned long crc1, unsigned long crc2, unsigned lon
 
 void main(void)
 {
-	unsigned char  test[] = "1234";
-  unsigned char  test1[]= "12";
-  unsigned char  test2[]= "34";
+	unsigned char  test[] = "12345678";
+  unsigned char  test1[]= "1234";
+  unsigned char  test2[]= "5678";
 
 
 	//Print the check value for the selected CRC algorithm.
@@ -23,13 +23,13 @@ void main(void)
   stopwatch_init();
   stopwatch_start(sw);
 
-  int result1 = crcSlow(test1, 2);
+  int result1 = crcSlow(test1, 4);
   printf("Part 1: %X\n", result1);
 
-  int result2 = crcSlow(test2, 2);
+  int result2 = crcSlow(test2, 4);
 	printf("Part 2: %X\n", result2);
 	
-  unsigned long ans = crc32_combine(result1, result2, 2);
+  unsigned long ans = crc32_combine(result1, result2, 4);
 
   printf("Combined CRC 0x%lx\n",ans);
 
