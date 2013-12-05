@@ -28,7 +28,6 @@ void main(void)
 
     char buffer[10];
     while(fgets(buffer,10,input_file)){
-        printf("Buffer is %s\n", buffer);
         strcpy(input_data+i,buffer);
         i = i+9;
     }
@@ -63,14 +62,18 @@ void main(void)
     int total_blocks = input_blocks + extra_blocks;
     int *result = malloc(total_blocks * sizeof(int));
     
+    omp_set_num_threads(8);
+
     unsigned long ans = 0;
 
+    char* block_data = malloc(input_blocks * (BLOCK_SIZE + 1));
+    char* block_addr;
+    //#pragma omp parallel  for default(none) shared(input_blocks, input_data, result, block_data) private (i, block_addr)  
     for(i = 0; i < input_blocks; ++i){
-        char* block_data = malloc(BLOCK_SIZE + 1);
-        strncpy(block_data, input_data + BLOCK_SIZE * i, BLOCK_SIZE);
-        strcat(block_data, "\0");
-        result[i] = crcSlow(block_data, BLOCK_SIZE);
-        free(block_data);
+        block_addr = block_data + (BLOCK_SIZE + 1) * i;
+        strncpy(block_addr, input_data + BLOCK_SIZE * i, BLOCK_SIZE);
+        strcat(block_addr, "\0");
+        result[i] = crcSlow(block_addr, BLOCK_SIZE);
     }
 
     int rem = input_data_len % BLOCK_SIZE;
@@ -102,4 +105,6 @@ void main(void)
 
     stopwatch_destroy(sw);
     free(last_block_data);
+    free(block_data);
+    free(input_data);
 } 
