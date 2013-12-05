@@ -2,8 +2,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include <omp.h>
-
 #include "crc.h"
 #include "timer.h"
 #include "parallel_crc.h"
@@ -11,8 +9,6 @@
 #define INPUT_FILE "input.in"
 #define DATA_SIZE 1000000000
 #define BLOCK_SIZE 10
-
-const char* input_data;
 
 void main(void)
 {
@@ -28,10 +24,11 @@ void main(void)
 
     int i = 0;
 
-    char buffer[150];
+    char buffer[10];
     while(fgets(buffer,10,input_file)){
+        printf("Buffer is %s\n", buffer);
         strcpy(input_data+i,buffer);
-        i = i+9;
+        i = i+10;
     }
     fclose(input_file);
 
@@ -68,36 +65,21 @@ void main(void)
 
     char* input_data1 = malloc(BLOCK_SIZE + 1);
 
-    omp_set_num_threads(8);   
-    printf("OMP Procs:   %d\n", omp_get_num_procs());
-    printf("OMP Threads: %d\n", omp_get_num_threads());
-    
-    char *p;
-    printf("Input Blocks: %d\n", input_blocks);
-    #pragma omp parallel default(none) shared(input_data, result, input_blocks) private(i, p)
-    {
-        #pragma omp for
-        for(i = 0; i < input_blocks; ++i){
-            p = malloc(BLOCK_SIZE + 1);
-            strncpy(p, input_data + BLOCK_SIZE*i, BLOCK_SIZE);
-            strcat(p, "\0");
-            result[i] = crcFast(p, BLOCK_SIZE);
-            free(p);
-        }
+    for(i = 0; i < input_blocks; ++i){
+        strncpy(input_data1, input_data + BLOCK_SIZE*i, BLOCK_SIZE);
+        strcat(input_data1, "\0");
+        result[i] = crcSlow(input_data1, BLOCK_SIZE);
     }
-
-    printf("Progressing\n");
 
     int rem = input_data_len % BLOCK_SIZE;
     if(extra_blocks == 1){
         strncpy(input_data1, input_data + BLOCK_SIZE*i, rem);
         strcat(input_data1, "\0");
         result[i] = crcSlow(input_data1, rem);
-        free(input_data1);
     }
 
     i=0;
-    for(i = 0; i<total_blocks-1; ++i){
+    for(i = 0; i < total_blocks-1; ++i){
         ans = crc32_combine(ans, result[i], BLOCK_SIZE);
     }
 
@@ -115,7 +97,6 @@ void main(void)
     printf("  Time: %Lg\n", stopwatch_elapsed(sw));
 
     stopwatch_destroy(sw);
-    int t = 0;
-    free(result);
     free(input_data);
+    free(input_data1);
 } 
