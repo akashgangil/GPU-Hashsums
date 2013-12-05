@@ -62,18 +62,17 @@ void main(void)
     int total_blocks = input_blocks + extra_blocks;
     int *result = malloc(total_blocks * sizeof(int));
     
-    omp_set_num_threads(1);
+    omp_set_num_threads(8);
 
     unsigned int ans = 0;
 
     char* block_data = malloc(input_blocks * (BLOCK_SIZE + 1));
     char* block_addr;
-    //#pragma omp parallel  for default(none) shared(input_blocks, input_data, result, block_data) private (i, block_addr)  
+    #pragma omp parallel  for default(none) shared(input_blocks, input_data, result, block_data) private (i, block_addr)  
     for(i = 0; i < input_blocks; ++i){
         block_addr = block_data + (BLOCK_SIZE + 1) * i;
         strncpy(block_addr, input_data + BLOCK_SIZE * i, BLOCK_SIZE);
         *(block_addr + BLOCK_SIZE) = '\0';
-        //strcat(block_addr, "\0");
         result[i] = crcSlow(block_addr, BLOCK_SIZE);
     }
 
@@ -87,13 +86,17 @@ void main(void)
     }
 
     i=0;
-    for(i = 0; i < total_blocks-1; ++i){
+    for(i = 0; i < input_blocks; ++i){
         ans = crc32_combine(ans, result[i], BLOCK_SIZE);
     }
 
-    ans = crc32_combine(ans, result[i], rem);
+    if(extra_blocks == 1)
+        ans = crc32_combine(ans, result[i], rem);
 
     stopwatch_stop(sw);
+
+    for(i = 0; i < total_blocks; ++i)
+        printf("Result[%d] 0x%X\n", i, result[i]);
 
     printf("Parallel() 0x%X   Time:  %Lg \n",ans, stopwatch_elapsed(sw));
 /*--------------------------------------------------------------------------------------*/
