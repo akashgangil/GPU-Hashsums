@@ -62,7 +62,7 @@ void main(void)
     int total_blocks = input_blocks + extra_blocks;
     int *result = malloc(total_blocks * sizeof(int));
     
-    omp_set_num_threads(8);
+    omp_set_num_threads(1);
 
     unsigned int ans = 0;
 
@@ -72,6 +72,7 @@ void main(void)
     for(i = 0; i < input_blocks; ++i){
         block_addr = block_data + (BLOCK_SIZE + 1) * i;
         strncpy(block_addr, input_data + BLOCK_SIZE * i, BLOCK_SIZE);
+        *(block_addr + BLOCK_SIZE) = '\0';
         strcat(block_addr, "\0");
         result[i] = crcSlow(block_addr, BLOCK_SIZE);
     }
@@ -94,7 +95,7 @@ void main(void)
 
     stopwatch_stop(sw);
 
-    printf("Parallel() 0x%lX   Time:  %Lg \n",ans, stopwatch_elapsed(sw));
+    printf("Parallel() 0x%X   Time:  %Lg \n",ans, stopwatch_elapsed(sw));
 /*--------------------------------------------------------------------------------------*/
 
     crcInit();
