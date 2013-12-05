@@ -62,29 +62,31 @@ void main(void)
     if(input_data_len % BLOCK_SIZE != 0)
         extra_blocks = 1;
 
+    int total_blocks = input_blocks + extra_blocks;
+    int *result = malloc(total_blocks * sizeof(int));
+    
     unsigned long ans = 0;
-    int result = 0;
 
     char* input_data1 = malloc(BLOCK_SIZE + 1);
     for(i = 0; i < input_blocks; ++i){
         strncpy(input_data1, input_data + BLOCK_SIZE*i, BLOCK_SIZE);
         strcat(input_data1, "\0");
-
-        result = crcSlow(input_data1, BLOCK_SIZE);
-
-        ans = crc32_combine(ans, result, BLOCK_SIZE);
-
+        result[i] = crcSlow(input_data1, BLOCK_SIZE);
     }
 
+    int rem = input_data_len % BLOCK_SIZE;
     if(extra_blocks == 1){
-        int rem = input_data_len % BLOCK_SIZE;
         strncpy(input_data1, input_data + BLOCK_SIZE*i, rem);
         strcat(input_data1, "\0");
-        
-        result = crcSlow(input_data1, rem);
-
-        ans = crc32_combine(ans, result, rem);
+        result[i] = crcSlow(input_data1, rem);
     }
+
+    i=0;
+    for(i = 0; i<total_blocks-1; ++i){
+        ans = crc32_combine(ans, result[i], BLOCK_SIZE);
+    }
+
+    ans = crc32_combine(ans, result[i], rem);
 
     stopwatch_stop(sw);
 
