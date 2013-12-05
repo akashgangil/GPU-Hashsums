@@ -71,22 +71,22 @@ void main(void)
     omp_set_num_threads(8);   
     printf("OMP Procs:   %d\n", omp_get_num_procs());
     printf("OMP Threads: %d\n", omp_get_num_threads());
-/*
-    int k = 0;
-    #pragma omp parallel private(k)
+    
+    char *p;
+    printf("Input Blocks: %d\n", input_blocks);
+    #pragma omp parallel default(none) shared(input_data, result, input_blocks) private(i, p)
     {
-        for(k=0; k < 10; ++k)
-            printf("%d: %d\n", k, omp_get_num_threads());
+        #pragma omp for
+        for(i = 0; i < input_blocks; ++i){
+            p = malloc(BLOCK_SIZE + 1);
+            strncpy(p, input_data + BLOCK_SIZE*i, BLOCK_SIZE);
+            strcat(p, "\0");
+            result[i] = crcFast(p, BLOCK_SIZE);
+            free(p);
+        }
     }
-*/
-//    #pragma omp parallel private(i)
-    for(i = 0; i < input_blocks; ++i){
-        char *p = malloc(BLOCK_SIZE + 1);
-        strncpy(p, input_data + BLOCK_SIZE*i, BLOCK_SIZE);
-        strcat(p, "\0");
-        result[i] = crcSlow(p, BLOCK_SIZE);
-        free(p);
-    }
+
+    printf("Progressing\n");
 
     int rem = input_data_len % BLOCK_SIZE;
     if(extra_blocks == 1){
