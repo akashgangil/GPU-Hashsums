@@ -35,14 +35,15 @@ void main(void)
         strcpy(input_data+i,buffer);
         i = i+9;
     }
+    fclose(input_file);
 
     /*Replace the line field ascii with \0*/
     input_data[strlen(input_data) - 1] = '\0';
     printf("The Input Data is %s\n", input_data);
-    fclose(input_file);
 
     struct stopwatch_t* sw = stopwatch_create();
 
+/*--------------------------------------------------------------------------------------*/
     stopwatch_init();
     stopwatch_start(sw);
 
@@ -51,6 +52,7 @@ void main(void)
     stopwatch_stop(sw);   
 
     printf("  Time: %Lg\n", stopwatch_elapsed(sw));
+/*--------------------------------------------------------------------------------------*/
 
     stopwatch_start(sw);
 
@@ -84,6 +86,7 @@ void main(void)
     stopwatch_stop(sw);
 
     printf("Combined CRC 0x%lx   Time:  %Lg \n",ans, stopwatch_elapsed(sw));
+/*--------------------------------------------------------------------------------------*/
 
     crcInit();
     stopwatch_start(sw);
