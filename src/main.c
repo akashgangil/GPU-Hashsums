@@ -65,14 +65,16 @@ void main(void)
     
     unsigned long ans = 0;
 
-    char* block_data = malloc(BLOCK_SIZE + 1);
     for(i = 0; i < input_blocks; ++i){
+        char* block_data = malloc(BLOCK_SIZE + 1);
         strncpy(block_data, input_data + BLOCK_SIZE * i, BLOCK_SIZE);
         strcat(block_data, "\0");
         result[i] = crcSlow(block_data, BLOCK_SIZE);
+        free(block_data);
     }
 
     int rem = input_data_len % BLOCK_SIZE;
+
     char* last_block_data = malloc(rem + 1);
     if(extra_blocks == 1){
         strncpy(last_block_data, input_data + BLOCK_SIZE*i, rem);
@@ -99,6 +101,5 @@ void main(void)
     printf("  Time: %Lg\n", stopwatch_elapsed(sw));
 
     stopwatch_destroy(sw);
-    free(block_data);
     free(last_block_data);
 } 
