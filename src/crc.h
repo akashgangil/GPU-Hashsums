@@ -8,7 +8,15 @@
 //Select the CRC standard from the list that follows.
 #define CRC32_MPEG
 
+#define SERVER
+
+#if defined(SERVER)
 typedef int crc;
+#elif defined(MYMACHINE)
+typedef int crc;
+#else
+#error "Define either MYMACHINE or SERVER"
+#endif
 
 #if defined(CRC32_MPEG)
 

@@ -64,7 +64,7 @@ void main(void)
     
     omp_set_num_threads(8);
 
-    unsigned long ans = 0;
+    unsigned int ans = 0;
 
     char* block_data = malloc(input_blocks * (BLOCK_SIZE + 1));
     char* block_addr;
