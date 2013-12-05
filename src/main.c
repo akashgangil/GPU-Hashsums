@@ -28,7 +28,7 @@ void main(void)
     while(fgets(buffer,10,input_file)){
         printf("Buffer is %s\n", buffer);
         strcpy(input_data+i,buffer);
-        i = i+10;
+        i = i+9;
     }
     fclose(input_file);
 
