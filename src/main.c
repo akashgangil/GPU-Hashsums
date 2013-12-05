@@ -9,7 +9,7 @@
 #include "parallel_crc.h"
 
 #define INPUT_FILE "input.in"
-#define INPUT_BLOCKS 2
+#define INPUT_BLOCKS 1
 #define DATA_SIZE 1000000
 #define BLOCK_SIZE DATA_SIZE/INPUT_BLOCKS
 
@@ -54,19 +54,29 @@ void main(void)
     strncpy(input_data1, input_data, input_block_size);
     *(input_data1 + input_block_size) = '\0';
 
-    int result1 = crcSlow(input_data1, input_block_size);
+    unsigned long ans = crcSlow(input_data1, input_block_size);
 
-    char* input_data2 = malloc(input_block_size+1);
-    strncpy(input_data2, input_data + input_block_size, input_block_size);
-    strcat(input_data2, "\0");
+    int result = 0;
 
-    int result2 = crcSlow(input_data2, input_block_size);
+    int loop_counter = 0;
 
-    unsigned long ans = crc32_combine(result1, result2, input_block_size);
+    for(i = 1; i < INPUT_BLOCKS; ++i){
+        input_data1 = malloc(input_block_size + 1);
+        strncpy(input_data1, input_data + input_block_size, input_block_size);
+        strcat(input_data1, "\0");
+
+        result = crcSlow(input_data1, input_block_size);
+
+        ans = crc32_combine(ans, result, input_block_size);
+
+        loop_counter++;
+    }
+
+    printf("LOOP COUNTER    %d\n", loop_counter);
 
     stopwatch_stop(sw);
 
-    printf("Combined CRC 0x%lx  Time:  %Lg \n",ans, stopwatch_elapsed(sw));
+    printf("Combined CRC 0x%lx   Time:  %Lg \n",ans, stopwatch_elapsed(sw));
 
     crcInit();
     stopwatch_start(sw);
@@ -75,4 +85,5 @@ void main(void)
     printf("  Time: %Lg\n", stopwatch_elapsed(sw));
 
     stopwatch_destroy(sw);
+    free(input_data);
 } 
