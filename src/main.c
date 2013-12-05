@@ -90,7 +90,7 @@ void main(void)
 
     stopwatch_stop(sw);
 
-    printf("Parallel CRC 0x%lX   Time:  %Lg \n",ans, stopwatch_elapsed(sw));
+    printf("Parallel() 0x%lX   Time:  %Lg \n",ans, stopwatch_elapsed(sw));
 /*--------------------------------------------------------------------------------------*/
 
     crcInit();
