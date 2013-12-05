@@ -68,9 +68,9 @@ void main(void)
 
     char* input_data1 = malloc(BLOCK_SIZE + 1);
 
-    //omp_set_num_threads(8);   
-    //printf("OMP Procs:   %d\n", omp_get_num_procs());
-    //printf("OMP Threads: %d\n", omp_get_num_threads());
+    omp_set_num_threads(8);   
+    printf("OMP Procs:   %d\n", omp_get_num_procs());
+    printf("OMP Threads: %d\n", omp_get_num_threads());
 /*
     int k = 0;
     #pragma omp parallel private(k)
@@ -78,14 +78,14 @@ void main(void)
         for(k=0; k < 10; ++k)
             printf("%d: %d\n", k, omp_get_num_threads());
     }
-
-    #pragma omp parallel private(i)
- */ 
+*/
+//    #pragma omp parallel private(i)
     for(i = 0; i < input_blocks; ++i){
         char *p = malloc(BLOCK_SIZE + 1);
         strncpy(p, input_data + BLOCK_SIZE*i, BLOCK_SIZE);
         strcat(p, "\0");
         result[i] = crcSlow(p, BLOCK_SIZE);
+        free(p);
     }
 
     int rem = input_data_len % BLOCK_SIZE;
@@ -93,6 +93,7 @@ void main(void)
         strncpy(input_data1, input_data + BLOCK_SIZE*i, rem);
         strcat(input_data1, "\0");
         result[i] = crcSlow(input_data1, rem);
+        free(input_data1);
     }
 
     i=0;
@@ -114,5 +115,7 @@ void main(void)
     printf("  Time: %Lg\n", stopwatch_elapsed(sw));
 
     stopwatch_destroy(sw);
+    int t = 0;
+    free(result);
     free(input_data);
 } 
