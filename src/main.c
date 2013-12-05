@@ -2,6 +2,8 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include <omp.h>
+
 #include "crc.h"
 #include "timer.h"
 #include "parallel_crc.h"
@@ -63,19 +65,19 @@ void main(void)
     
     unsigned long ans = 0;
 
-    char* input_data1 = malloc(BLOCK_SIZE + 1);
-
+    char* block_data = malloc(BLOCK_SIZE + 1);
     for(i = 0; i < input_blocks; ++i){
-        strncpy(input_data1, input_data + BLOCK_SIZE*i, BLOCK_SIZE);
-        strcat(input_data1, "\0");
-        result[i] = crcSlow(input_data1, BLOCK_SIZE);
+        strncpy(block_data, input_data + BLOCK_SIZE * i, BLOCK_SIZE);
+        strcat(block_data, "\0");
+        result[i] = crcSlow(block_data, BLOCK_SIZE);
     }
 
     int rem = input_data_len % BLOCK_SIZE;
+    char* last_block_data = malloc(rem + 1);
     if(extra_blocks == 1){
-        strncpy(input_data1, input_data + BLOCK_SIZE*i, rem);
-        strcat(input_data1, "\0");
-        result[i] = crcSlow(input_data1, rem);
+        strncpy(last_block_data, input_data + BLOCK_SIZE*i, rem);
+        strcat(last_block_data, "\0");
+        result[i] = crcSlow(last_block_data, rem);
     }
 
     i=0;
@@ -97,6 +99,6 @@ void main(void)
     printf("  Time: %Lg\n", stopwatch_elapsed(sw));
 
     stopwatch_destroy(sw);
-    free(input_data);
-    free(input_data1);
+    free(block_data);
+    free(last_block_data);
 } 
