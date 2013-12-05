@@ -23,6 +23,11 @@ void main(void)
     FILE* input_file; 
     input_file = fopen(INPUT_FILE, "r");
 
+    if(input_file == NULL){
+        fprintf(stderr, "Failed to open %s\n", INPUT_FILE);
+        exit(1);
+    }
+
     int i = 0;
 
     char buffer[150];
@@ -31,6 +36,8 @@ void main(void)
         i = i+9;
     }
 
+    /*Replace the line field ascii with \0*/
+    input_data[strlen(input_data) - 1] = '\0';
     printf("The Input Data is %s\n", input_data);
     fclose(input_file);
 
