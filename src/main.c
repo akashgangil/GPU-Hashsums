@@ -85,7 +85,7 @@ void main(void)
 
     stopwatch_stop(sw);
 
-    printf("Combined CRC 0x%lx   Time:  %Lg \n",ans, stopwatch_elapsed(sw));
+    printf("Parallel CRC 0x%lx   Time:  %Lg \n",ans, stopwatch_elapsed(sw));
 /*--------------------------------------------------------------------------------------*/
 
     crcInit();
