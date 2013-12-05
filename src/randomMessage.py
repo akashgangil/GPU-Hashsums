@@ -10,5 +10,4 @@ def randomMessage(n):
     f.close()
     
 if __name__ == "__main__":
-    print "argument is" + sys.argv[1]
     randomMessage(sys.argv[1])
