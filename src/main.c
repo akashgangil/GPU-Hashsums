@@ -9,7 +9,7 @@
 #include "parallel_crc.h"
 
 #define INPUT_FILE "input.in"
-#define DATA_SIZE 1000000
+#define DATA_SIZE 1000000000
 #define BLOCK_SIZE 10
 
 const char* input_data;
@@ -68,15 +68,24 @@ void main(void)
 
     char* input_data1 = malloc(BLOCK_SIZE + 1);
 
-    omp_set_num_threads(4);   
-    printf("OMP Procs: %d\n", omp_get_num_procs());
-    printf("OMP Threads: %d\n", omp_get_num_threads());
+    //omp_set_num_threads(8);   
+    //printf("OMP Procs:   %d\n", omp_get_num_procs());
+    //printf("OMP Threads: %d\n", omp_get_num_threads());
+/*
+    int k = 0;
+    #pragma omp parallel private(k)
+    {
+        for(k=0; k < 10; ++k)
+            printf("%d: %d\n", k, omp_get_num_threads());
+    }
 
-    //#pragma omp parallel for
+    #pragma omp parallel private(i)
+ */ 
     for(i = 0; i < input_blocks; ++i){
-        strncpy(input_data1, input_data + BLOCK_SIZE*i, BLOCK_SIZE);
-        strcat(input_data1, "\0");
-        result[i] = crcSlow(input_data1, BLOCK_SIZE);
+        char *p = malloc(BLOCK_SIZE + 1);
+        strncpy(p, input_data + BLOCK_SIZE*i, BLOCK_SIZE);
+        strcat(p, "\0");
+        result[i] = crcSlow(p, BLOCK_SIZE);
     }
 
     int rem = input_data_len % BLOCK_SIZE;
