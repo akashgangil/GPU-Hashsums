@@ -9,10 +9,9 @@
 #include "parallel_crc.h"
 
 #define INPUT_FILE "input.in"
-#define INPUT_BLOCKS 1
+//#define INPUT_BLOCKS 1
 #define DATA_SIZE 1000000
-#define BLOCK_SIZE DATA_SIZE/INPUT_BLOCKS
-
+#define BLOCK_SIZE 10
 
 const char* input_data;
 
@@ -57,35 +56,39 @@ void main(void)
     stopwatch_start(sw);
 
     size_t input_data_len = strlen(input_data);
-    size_t input_block_size = input_data_len / INPUT_BLOCKS;
+    
+    int input_blocks = input_data_len / BLOCK_SIZE;
+    int extra_blocks = 0;
+    if(input_data_len % BLOCK_SIZE != 0)
+        extra_blocks = 1;
 
-    char* input_data1 = malloc(input_block_size+1);
-    strncpy(input_data1, input_data, input_block_size);
-    *(input_data1 + input_block_size) = '\0';
-
-    unsigned long ans = crcSlow(input_data1, input_block_size);
-
+    unsigned long ans = 0;
     int result = 0;
 
-    int loop_counter = 0;
-
-    for(i = 1; i < INPUT_BLOCKS; ++i){
-        input_data1 = malloc(input_block_size + 1);
-        strncpy(input_data1, input_data + input_block_size, input_block_size);
+    char* input_data1 = malloc(BLOCK_SIZE + 1);
+    for(i = 0; i < input_blocks; ++i){
+        strncpy(input_data1, input_data + BLOCK_SIZE*i, BLOCK_SIZE);
         strcat(input_data1, "\0");
 
-        result = crcSlow(input_data1, input_block_size);
+        result = crcSlow(input_data1, BLOCK_SIZE);
 
-        ans = crc32_combine(ans, result, input_block_size);
+        ans = crc32_combine(ans, result, BLOCK_SIZE);
 
-        loop_counter++;
     }
 
-    printf("LOOP COUNTER    %d\n", loop_counter);
+    if(extra_blocks == 1){
+        int rem = input_data_len % BLOCK_SIZE;
+        strncpy(input_data1, input_data + BLOCK_SIZE*i, rem);
+        strcat(input_data1, "\0");
+        
+        result = crcSlow(input_data1, rem);
+
+        ans = crc32_combine(ans, result, rem);
+    }
 
     stopwatch_stop(sw);
 
-    printf("Parallel CRC 0x%lx   Time:  %Lg \n",ans, stopwatch_elapsed(sw));
+    printf("Parallel CRC 0x%lX   Time:  %Lg \n",ans, stopwatch_elapsed(sw));
 /*--------------------------------------------------------------------------------------*/
 
     crcInit();
