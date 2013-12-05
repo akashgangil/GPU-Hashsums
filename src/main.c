@@ -67,6 +67,12 @@ void main(void)
     unsigned long ans = 0;
 
     char* input_data1 = malloc(BLOCK_SIZE + 1);
+
+    omp_set_num_threads(4);   
+    printf("OMP Procs: %d\n", omp_get_num_procs());
+    printf("OMP Threads: %d\n", omp_get_num_threads());
+
+    //#pragma omp parallel for
     for(i = 0; i < input_blocks; ++i){
         strncpy(input_data1, input_data + BLOCK_SIZE*i, BLOCK_SIZE);
         strcat(input_data1, "\0");
