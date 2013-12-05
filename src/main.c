@@ -73,7 +73,7 @@ void main(void)
         block_addr = block_data + (BLOCK_SIZE + 1) * i;
         strncpy(block_addr, input_data + BLOCK_SIZE * i, BLOCK_SIZE);
         *(block_addr + BLOCK_SIZE) = '\0';
-        strcat(block_addr, "\0");
+        //strcat(block_addr, "\0");
         result[i] = crcSlow(block_addr, BLOCK_SIZE);
     }
 
