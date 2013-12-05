@@ -9,7 +9,6 @@
 #include "parallel_crc.h"
 
 #define INPUT_FILE "input.in"
-//#define INPUT_BLOCKS 1
 #define DATA_SIZE 1000000
 #define BLOCK_SIZE 10
 
