@@ -1,0 +1,9 @@
+Build Instruction: make clean && make
+
+To run: ./crc
+
+CRC32.java contains the java CRC32 implementation
+
+randomMessage.py: Takes in number of characters as input and generates a message. 
+                  Usage: python randomMessage.py 1234
+
