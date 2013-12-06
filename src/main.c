@@ -68,28 +68,37 @@ void main(void)
 
     char* block_data = malloc(input_blocks * (BLOCK_SIZE + 1));
     char* block_addr;
+
+    i = 0;
+
+    printf("I before Pragman: %4d\n", i);
     #pragma omp parallel  for default(none) shared(input_blocks, input_data, result, block_data) private (i, block_addr)  
     for(i = 0; i < input_blocks; ++i){
         block_addr = block_data + (BLOCK_SIZE + 1) * i;
         strncpy(block_addr, input_data + BLOCK_SIZE * i, BLOCK_SIZE);
-        *(block_addr + BLOCK_SIZE + 1) = '\0';
+        *(block_addr + BLOCK_SIZE) = '\0';
+        printf("Block Data: %s\n", block_addr);
         result[i] = crcSlow(block_addr, BLOCK_SIZE);
     }
-
+    printf("I after Pragman: %4d\n", i);
     int rem = input_data_len % BLOCK_SIZE;
 
     char* last_block_data = malloc(rem + 1);
+    printf("I is %3d\n", i);
+    
     if(extra_blocks == 1){
-        strncpy(last_block_data, input_data + BLOCK_SIZE*i, rem);
-        *(last_block_data + rem + 1) = '\0';
-        result[i] = crcSlow(last_block_data, rem);
+        strncpy(last_block_data, input_data + BLOCK_SIZE * input_blocks, rem);
+        *(last_block_data + rem) = '\0';
+        printf("Last Block: %s Last Block Length: %d Rem : %d\n", last_block_data, strlen(last_block_data), rem);
+        result[input_blocks] = crcSlow(last_block_data, rem);
+        printf("Last Block Result[%d]: 0X%X\n", i, result[i]);
     }
 
     i=0;
     for(i = 0; i < input_blocks; ++i){
         ans = crc32_combine(ans, result[i], BLOCK_SIZE);
     }
-
+    printf("Result[%d] : %d\n", i, result[i]);
     if(extra_blocks == 1)
         ans = crc32_combine(ans, result[i], rem);
 
