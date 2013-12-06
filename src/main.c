@@ -95,8 +95,8 @@ void main(void)
 
     stopwatch_stop(sw);
 
-    for(i = 0; i < total_blocks; ++i)
-        printf("Result[%d] 0x%X\n", i, result[i]);
+    //for(i = 0; i < total_blocks; ++i)
+    //    printf("Result[%d] 0x%X\n", i, result[i]);
 
     printf("Parallel() 0x%X   Time:  %Lg \n",ans, stopwatch_elapsed(sw));
 /*--------------------------------------------------------------------------------------*/
