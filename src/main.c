@@ -72,7 +72,7 @@ void main(void)
     for(i = 0; i < input_blocks; ++i){
         block_addr = block_data + (BLOCK_SIZE + 1) * i;
         strncpy(block_addr, input_data + BLOCK_SIZE * i, BLOCK_SIZE);
-        *(block_addr + BLOCK_SIZE) = '\0';
+        *(block_addr + BLOCK_SIZE + 1) = '\0';
         result[i] = crcSlow(block_addr, BLOCK_SIZE);
     }
 
@@ -81,7 +81,7 @@ void main(void)
     char* last_block_data = malloc(rem + 1);
     if(extra_blocks == 1){
         strncpy(last_block_data, input_data + BLOCK_SIZE*i, rem);
-        strcat(last_block_data, "\0");
+        *(last_block_data + rem + 1) = '\0';
         result[i] = crcSlow(last_block_data, rem);
     }
 
