@@ -35,7 +35,7 @@ void main(void)
 
     /*Replace the line field ascii with \0*/
     input_data[strlen(input_data) - 1] = '\0';
-    printf("The Input Data is %s\n", input_data);
+    //printf("The Input Data is %s\n", input_data);
 
     struct stopwatch_t* sw = stopwatch_create();
 
