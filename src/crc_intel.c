@@ -5,12 +5,27 @@
 
 #include "timer.h"
 
+#define LENGTH 64000000
+
 static uint32_t CrcHash(const void* data, uint32_t bytes);
+
+void rand_str(char *dest, size_t length) {
+    char charset[] = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    
+    while (length-- > 0) {
+        size_t index = (double) rand() / RAND_MAX * (sizeof charset - 1);
+        *dest++ = charset[index];
+    }
+    *dest = '\0';
+}
 
 int main ()
 {
-    unsigned char data[] = "Adiantum viridimontanum, commonly known as Green Mountain maidenhair fern, is a rare fern found only in outcrops of serpentine rock in New England and Canada. It is named after the site of its discovery in the Green Mountains in Vermont; it has since been located in Quebec and in one site on serpentine in coastal Maine. Until 1991, it was grouped with the western maidenhair fern A. aleuticum, which itself was classified as a variety of the northern maidenhair fern A. pedatum. It was then established that A. viridimontanum was a hybrid species and that the other two ferns were distinct species, although it is difficult to distinguish between the three species in the field. Due to the limited distribution of A. viridimontanum and its similarity to other species, little is known of its ecology. It thrives on sunny, disturbed areas where ultramafic rock is covered with thin soil, such as road cuts, talus slopes, and asbestos mines. Individual plants seem long-lived, and new individuals only infrequently reach maturity.";
+    char *data;
+    data = (char*) malloc(LENGTH * sizeof(char));
 
+    rand_str(data, LENGTH);
+  
     struct stopwatch_t* sw = stopwatch_create();
 
     stopwatch_init();
@@ -29,13 +44,9 @@ int main ()
 static uint32_t CrcHash(const void* data, uint32_t bytes){
     uint32_t hash = 0xFFFFFFFF;
 
-    printf("Data is %s \n", (char*)data);
-
     uint32_t words = bytes / sizeof(uint32_t);
     bytes = bytes % sizeof(uint32_t);
   
-
-    //const uint32_t* p = reinterpret_cast<const uint32_t*>(data);
     const uint32_t* p = (const uint32_t*)(data);
     while (words--) {
       hash = _mm_crc32_u32(hash, *p);
