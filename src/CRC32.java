@@ -19,12 +19,13 @@ public class CRC32 {
     public static void main(String[] args) { 
         try{
             String fileData = readFile("input.in");
-            System.out.print(fileData);
-            System.out.print("\n");
             byte[] bytes = fileData.getBytes();
             java.util.zip.CRC32 x = new java.util.zip.CRC32();
+            long start_timer = System.currentTimeMillis();
             x.update(bytes);
+            long end_timer = System.currentTimeMillis();           
             System.out.println("CRC32 (via Java's library)     = " + Long.toHexString(x.getValue()));
+            System.out.println(end_timer - start_timer + "ms");
         }catch(Exception e){
             System.out.println(e.getMessage());
         }
