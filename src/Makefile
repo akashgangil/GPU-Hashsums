@@ -5,7 +5,7 @@ CUDA_PATH = /opt/cuda-4.2/cuda
 NVCCFLAGS= -arch=compute_20 -code=sm_20 -I$(CUDA_SDK_PATH)/C/common/inc
 CFLAGS = -L$(CUDA_PATH)/lib64 -lcudart
 
-all: crc crc_gpu crc_intel 
+all: crc crc_intel crc_gpu
 
 crc_CUSRCS = crc_gpu.cu
 crc_CSRCS = driver.c
@@ -38,3 +38,6 @@ crc_intel: timer.o
 
 clean:
 	rm *.o crc crc_gpu crc_intel *.o__cu *.o__c 
+
+cleanjoblogs:
+	rm cuda.o* cuda.e*
