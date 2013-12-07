@@ -2,8 +2,14 @@ Build Instruction: make clean && make
 
 To run: ./crc
 
-CRC32.java contains the java CRC32 implementation
+CRC32.java      : Contains the java CRC32 implementation
 
 randomMessage.py: Takes in number of characters as input and generates a message. 
                   Usage: python randomMessage.py 1234
+
+crc_intel.c     : Uses Intel Intrinsic Intruction _mm_crc32_u32/_mm_crc32_u8 to calculate the crc
+
+parallel_crc.c  : Contains the zlib's crc32_combine method to combine checksums to two data blocks
+
+
 
