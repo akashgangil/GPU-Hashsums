@@ -37,4 +37,4 @@ crc_intel: timer.o
 	$(CC) -o crc_intel -msse4.2 crc_intel.c timer.o
 
 clean:
-	rm *.o crc crc_gpu *.o__cu *.o__c 
+	rm *.o crc crc_gpu crc_intel *.o__cu *.o__c 
