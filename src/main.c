@@ -7,10 +7,11 @@
 #include "crc.h"
 #include "timer.h"
 #include "parallel_crc.h"
+#include "crc_intel.h"
 
 #define INPUT_FILE "input.in"
 #define DATA_SIZE 1000000000
-#define BLOCK_SIZE 10
+#define BLOCK_SIZE 4000000
 
 void main(void)
 {
@@ -35,7 +36,6 @@ void main(void)
 
     /*Replace the line field ascii with \0*/
     input_data[strlen(input_data) - 1] = '\0';
-    //printf("The Input Data is %s\n", input_data);
 
     struct stopwatch_t* sw = stopwatch_create();
 
@@ -62,7 +62,7 @@ void main(void)
     int total_blocks = input_blocks + extra_blocks;
     int *result = malloc(total_blocks * sizeof(int));
     
-    omp_set_num_threads(8);
+    omp_set_num_threads(16);
 
     unsigned int ans = 0;
 
@@ -99,7 +99,7 @@ void main(void)
 
     stopwatch_stop(sw);
 
-    printf("Parallel() 0x%X   Time:  %Lg \n",ans, stopwatch_elapsed(sw));
+    printf("Parallel() 0x%X   Time:  %Lg \n",ans, stopwatch_elapsed(sw)); 
 /*--------------------------------------------------------------------------------------*/
 
     crcInit();
@@ -109,6 +109,15 @@ void main(void)
     printf("  Time: %Lg\n", stopwatch_elapsed(sw));
 
     stopwatch_destroy(sw);
+/*--------------------------------------------------------------------------------------*/
+    stopwatch_start(sw);
+    printf("crc_intel() 0x%X  ", CrcHash((const void*)input_data, strlen(input_data)));
+    stopwatch_stop(sw);
+    printf("  Time: %Lg\n", stopwatch_elapsed(sw));
+
+/*--------------------------------------------------------------------------------------*/
+    
+    /*Cleanup*/  
     free(last_block_data);
     free(block_data);
     free(input_data);

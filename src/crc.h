@@ -6,7 +6,7 @@
 #define TRUE	!FALSE
 
 //Select the CRC standard from the list that follows.
-#define CRC32_MPEG
+#define CRC32_SCSI
 
 #define SERVER
 
