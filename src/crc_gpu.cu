@@ -282,12 +282,18 @@ fprintf (stderr, "Entered cuda\n");
 	CUDA_CHECK_ERROR (cudaMalloc ((void**) &partialcrc, sizeof(long) * nBlocks)); 	//create an array to hold the partical CRC from each block, 4 bytes long (i.e. 32 bits)
 	CUDA_CHECK_ERROR (cudaMalloc ((void**) &finalcrc, 4)); //the final crc will be 4 bytes long (i.e. 32 bits) 
 
+
 	hostpartialcrc = (long*) malloc(sizeof(long) * nBlocks);
 
 
-fprintf (stderr, "value in partialcrc = %u \n", partialcrc);
+fprintf (stderr, "value in partialcrc = 0X%X \n", partialcrc);
+fprintf (stderr, "value in hostpartialcrc = 0X%X  \n", hostpartialcrc);
+
+
 
 fprintf (stderr, "Calling Kernels\n");
+
+
 	crcCalKernel <<<grid, block>>> (pointerToData, partialcrc, N);
 
 
@@ -299,13 +305,15 @@ if (errAsync != cudaSuccess)
   fprintf (stderr, "Async kernel error: %s\n", cudaGetErrorString(errAsync));
 
 
-fprintf (stderr, "After Kernels\n");
-	cudaThreadSynchronize();
 
+
+	cudaThreadSynchronize();
+fprintf (stderr, "After synchronize \n");
 //copy the data back 
 CUDA_CHECK_ERROR (cudaMemcpy (hostpartialcrc, partialcrc, sizeof(long) * nBlocks, cudaMemcpyDeviceToHost));
 
-
+fprintf (stderr, "value in partialcrc = 0X%X  \n", partialcrc);
+fprintf (stderr, "value in hostpartialcrc = 0X%X  \n", hostpartialcrc);
 
 fprintf (stderr, "After thread sync\n");
 	//After calling crcCalKernel, each block would have produced its own block-partial crc and stored in hostpartialcrcvariable. Now we need to combine them at block level.
@@ -314,7 +322,7 @@ fprintf (stderr, "After thread sync\n");
 	
 fprintf (stderr, "Doing crc combination at block level\n");
 	for(int i = 1; i < nBlocks; i++){
-	
+
 		finalcrc = (unsigned long) crc32_combine( finalcrc, (unsigned long) hostpartialcrc[i], 8192);	//1024 threads * 8 bytes each
 	
 	}
@@ -325,10 +333,10 @@ fprintf (stderr, "Doing crc combination at block level\n");
 	//memcpy - dest, src, num bytes, direction
 	//CUDA_CHECK_ERROR (cudaMemcpy (h_Out, d_Out, nBlocks * sizeof (char), cudaMemcpyDeviceToHost));
 
-	CUDA_CHECK_ERROR (cudaFree (pointerToData));
+	CUDA_CHECK_ERROR (cudaFree (pointerToData)); 
 
  
-}
+} 
 
 
 
