@@ -19,9 +19,10 @@ void initCudaArray (char **d_data, char* input_data, unsigned int N)
 
 __global__ void crcCalKernel (char* pointerToData, char* finalcrc, unsigned int N)
 {
+  
+	unsigned int tid = blockIdx.x * blockDim.x + threadIdx.x; 
+
   /*__shared__ char buffer[BS];
-  unsigned int tid = blockIdx.x * blockDim.x + threadIdx.x;
-  unsigned int stride;
 
   // load data to buffer 
   if(tid < N) {
