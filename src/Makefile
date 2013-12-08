@@ -5,7 +5,7 @@ CUDA_PATH = /opt/cuda-4.2/cuda
 NVCCFLAGS= -arch=compute_20 -code=sm_20 -I$(CUDA_SDK_PATH)/C/common/inc
 CFLAGS = -L$(CUDA_PATH)/lib64 -lcudart
 
-all: crc crc_intel crc_gpu
+all: crc 
 
 crc_CUSRCS = crc_gpu.cu
 crc_CSRCS = driver.c
@@ -21,8 +21,8 @@ crc_gpu: $(crc_CUOBJS) $(crc_COBJS)
 %.o__cu: %.cu
 	$(NVCC) $(NVCCFLAGS) -o $@ -c $< 
 
-crc: crc.o timer.o parallel_crc.o
-	$(CC) -fopenmp -O3 -o crc main.c crc.o timer.o parallel_crc.o
+crc: crc.o timer.o parallel_crc.o crc_intel.o
+	$(CC) -fopenmp -O3 -o crc main.c crc.o timer.o parallel_crc.o crc_intel.o
 	
 parallel_crc.o: parallel_crc.h
 		$(CC) -c parallel_crc.c
@@ -32,6 +32,9 @@ crc.o: crc.h
 
 timer.o: timer.h
 	$(CC) -c timer.c
+
+crc_intel.o: crc_intel.h timer.o
+	$(CC) -c -msse4.2 crc_intel.c timer.o
 
 crc_intel: timer.o
 	$(CC) -o crc_intel -msse4.2 crc_intel.c timer.o
