@@ -16,7 +16,6 @@ echo "Node:" `hostname`
 echo "Current directory: ${PWD}"
 
 ./crc_gpu
-done
 
 echo ""
 echo "=== Done! ==="
