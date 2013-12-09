@@ -135,6 +135,39 @@ __device__ unsigned long reflect(unsigned long data, unsigned char nBits)
 
 }	
 
+//Compute the CRC of a given message.
+__device__ int crcSlow(unsigned char const message[], int nBytes)
+{
+  	int            remainder = INITIAL_REMAINDER;
+	int            byte;
+	unsigned char  bit;
+
+    //Perform modulo-2 division, a byte at a time.
+    for (byte = 0; byte < nBytes; ++byte)
+    {
+        //Bring the next byte into the remainder.
+        remainder ^= (REFLECT_DATA(message[byte]) << (WIDTH - 8));
+
+        //Perform modulo-2 division, a bit at a time.
+        for (bit = 8; bit > 0; --bit)
+        {
+            //Try to divide the current data bit.
+            if (remainder & TOPBIT)
+            {
+                remainder = (remainder << 1) ^ POLYNOMIAL;
+            }
+            else
+            {
+                remainder = (remainder << 1);
+            }
+        }
+    }
+
+    //The final remainder is the CRC result.
+    return (REFLECT_REMAINDER(remainder) ^ FINAL_XOR_VALUE);
+}   
+
+
 __device__ int crcTable[256];
 
 //Populate the partial CRC lookup table.
@@ -195,35 +228,35 @@ __device__ int crcFast(unsigned char message[], int nBytes)
 
 __global__ void crcCalKernel (char* pointerToData, long* partialcrc, unsigned int N)
 {
+
 	//Shared memory is per block, so its shared among 1024 threads, as defined by BS -> assume only 16kb of shared mem as what online says 
 
 	__shared__ unsigned char buffer[BS * 8];			//This is input data for the entire block - each has 8 bytes to process 
-	__shared__ unsigned long threadlocalcrc[BS];		//This is to store the individual thread's crc - each crc is 4 bytes long 
+	__shared__ unsigned long threadlocalcrc[BS];		//This is to store the individual thread's crc - each crc is 4 bytes long (the size of ONE long)
 
-	//Find my own ID 
 	unsigned int i;
 	unsigned int numBytesToProcess = 8; 
 	unsigned int nThreads = N / numBytesToProcess; 
 	unsigned int threadid = blockIdx.x * blockDim.x + threadIdx.x; 
-	unsigned int globalStartIndex = threadid * numBytesToProcess; 		//used to locate its chunk of 8bytes in the input data
-	
+	unsigned int globalStartIndex = threadid * numBytesToProcess; 
+
 	//Loading the data into the buffer
-	if(threadid < nThreads ){
-		// each thread copy 8 bytes from global memory 
-		for(i = 0; i < numBytesToProcess; i++){
-			buffer[(threadIdx.x * numBytesToProcess) + i] = pointerToData[globalStartIndex + i];
+	if(threadid < nThreads ){		// each thread copy 8 bytes from global memory 
+		for(i = 0; i < numBytesToProcess; i++){	
+			if(globalStartIndex + i < N)
+				buffer[(threadIdx.x * numBytesToProcess) + i] = pointerToData[globalStartIndex + i];
 		}
 	}		
 	else {
-		// do nothing
+		//do nothing 
 	}
 
 	__syncthreads ();
 
-	//Now that data is in the shared memory, can process it! 
 
 	crcInit();
-	threadlocalcrc[threadIdx.x] = crcFast(&buffer[(threadIdx.x * numBytesToProcess)], numBytesToProcess);	//this gives me the crc (as datatype int) for the 8bytes the thread is in charge of 
+	threadlocalcrc[threadIdx.x] = (long) crcFast(&buffer[(threadIdx.x * numBytesToProcess)], numBytesToProcess);	//this gives me the crc (as datatype int) for the 8bytes the thread is in charge of 
+
 
 	//now that data is inside threadlocalcrc, do the combining / reducing 
 
@@ -246,12 +279,19 @@ __global__ void crcCalKernel (char* pointerToData, long* partialcrc, unsigned in
 		__syncthreads ();
 	}
 
+
 	//Now, all the CRC would be combined into the first element. Add it to the partialcrc variable that was passed in from the host. Only thread 0 does it 
 	if(threadIdx.x == 0){
 		partialcrc[blockIdx.x] = threadlocalcrc[0];
 	}
 
-	//end of function
+	/*long a = 123;
+	long b = 456;
+	partialcrc[0] = a;
+	partialcrc[1] = ++a;
+	partialcrc[2] = b;
+	*/
+
 	return; 
 }
 
@@ -279,59 +319,28 @@ fprintf (stderr, "Entered cuda\n");
 	nBlocks = (nThreads + tbSize - 1) / tbSize;	//nBlocks will be the number of blocks we need
 	dim3 grid (nBlocks);
 	dim3 block (tbSize);
+
 	CUDA_CHECK_ERROR (cudaMalloc ((void**) &partialcrc, sizeof(long) * nBlocks)); 	//create an array to hold the partical CRC from each block, 4 bytes long (i.e. 32 bits)
-	CUDA_CHECK_ERROR (cudaMalloc ((void**) &finalcrc, 4)); //the final crc will be 4 bytes long (i.e. 32 bits) 
+	hostpartialcrc = (long*) malloc(sizeof(long)* nBlocks);
 
-
-	hostpartialcrc = (long*) malloc(sizeof(long) * nBlocks);
-
-
-fprintf (stderr, "value in partialcrc = 0X%X \n", partialcrc);
-fprintf (stderr, "value in hostpartialcrc = 0X%X  \n", hostpartialcrc);
-
-
-
-fprintf (stderr, "Calling Kernels\n");
+fprintf (stderr, "nThreads = %u  \n", nThreads);
+fprintf (stderr, "tbSize = %u  \n", tbSize);
+fprintf (stderr, "nBlocks = %u  \n", nBlocks);
+fprintf (stderr, "value in partialcrc = 0X%X  \n", partialcrc);
+fprintf (stderr, "value in hostpartialcrc = 0X%X  \n", *hostpartialcrc);
+long a = 9;
+hostpartialcrc = &a;
+fprintf (stderr, "new value of hostpartialcrc = %u  \n", *hostpartialcrc);
 
 
 	crcCalKernel <<<grid, block>>> (pointerToData, partialcrc, N);
-
-
-cudaError_t errSync  = cudaGetLastError();
-cudaError_t errAsync = cudaDeviceSynchronize();
-if (errSync != cudaSuccess) 
-  fprintf (stderr, "Sync kernel error: %s\n", cudaGetErrorString(errSync));
-if (errAsync != cudaSuccess)
-  fprintf (stderr, "Async kernel error: %s\n", cudaGetErrorString(errAsync));
-
-
-
-
 	cudaThreadSynchronize();
-fprintf (stderr, "After synchronize \n");
-//copy the data back 
-CUDA_CHECK_ERROR (cudaMemcpy (hostpartialcrc, partialcrc, sizeof(long) * nBlocks, cudaMemcpyDeviceToHost));
 
-fprintf (stderr, "value in partialcrc = 0X%X  \n", partialcrc);
-fprintf (stderr, "value in hostpartialcrc = 0X%X  \n", hostpartialcrc);
+	CUDA_CHECK_ERROR (cudaMemcpy (hostpartialcrc, partialcrc, sizeof(long) * nBlocks, cudaMemcpyDeviceToHost));
 
-fprintf (stderr, "After thread sync\n");
-	//After calling crcCalKernel, each block would have produced its own block-partial crc and stored in hostpartialcrcvariable. Now we need to combine them at block level.
-
-	finalcrc = (unsigned long) hostpartialcrc;	//just assign the first partial crc to the final value. In loop index, start with 1
-	
-fprintf (stderr, "Doing crc combination at block level\n");
-	for(int i = 1; i < nBlocks; i++){
-
-		finalcrc = (unsigned long) crc32_combine( finalcrc, (unsigned long) hostpartialcrc[i], 8192);	//1024 threads * 8 bytes each
-	
-	}
-
-	//print out the final crc
-	fprintf (stderr, "CRC is : 0x%X\n", finalcrc);
-
-	//memcpy - dest, src, num bytes, direction
-	//CUDA_CHECK_ERROR (cudaMemcpy (h_Out, d_Out, nBlocks * sizeof (char), cudaMemcpyDeviceToHost));
+fprintf (stderr, "After cuda, hostpartialcrc[0] = 0X%X  \n", hostpartialcrc[0]);
+//fprintf (stderr, "After cuda, hostpartialcrc[1] = %u  \n", hostpartialcrc[1]);
+//fprintf (stderr, "After cuda, hostpartialcrc[2] = %u  \n", hostpartialcrc[2]);
 
 	CUDA_CHECK_ERROR (cudaFree (pointerToData)); 
 
