@@ -206,7 +206,7 @@ __device__ void crcInit(void)
 
 
 //Compute the CRC of a given message using table lookups 
-__device__ int crcFast(unsigned char message[], int nBytes)
+__device__ int crcFast(char* message, int nBytes)
 {
     int	     remainder = INITIAL_REMAINDER;
     unsigned char  data;
@@ -231,8 +231,9 @@ __global__ void crcCalKernel (char* pointerToData, long* partialcrc, unsigned in
 
 	//Shared memory is per block, so its shared among 1024 threads, as defined by BS -> assume only 16kb of shared mem as what online says 
 
-	__shared__ unsigned char buffer[BS * 8];			//This is input data for the entire block - each has 8 bytes to process 
 	__shared__ unsigned long threadlocalcrc[BS];		//This is to store the individual thread's crc - each crc is 4 bytes long (the size of ONE long)
+	__shared__ unsigned char buffer[BS * 8];			//This is input data for the entire block - each has 8 bytes to process 
+	
 
 	unsigned int i;
 	unsigned int numBytesToProcess = 8; 
@@ -240,7 +241,7 @@ __global__ void crcCalKernel (char* pointerToData, long* partialcrc, unsigned in
 	unsigned int threadid = blockIdx.x * blockDim.x + threadIdx.x; 
 	unsigned int globalStartIndex = threadid * numBytesToProcess; 
 
-	//Loading the data into the buffer
+/*	//Loading the data into the buffer
 	if(threadid < nThreads ){		// each thread copy 8 bytes from global memory 
 		for(i = 0; i < numBytesToProcess; i++){	
 			if(globalStartIndex + i < N)
@@ -253,18 +254,25 @@ __global__ void crcCalKernel (char* pointerToData, long* partialcrc, unsigned in
 
 	__syncthreads ();
 
+*/
+
 
 	crcInit();
-	threadlocalcrc[threadIdx.x] = (long) crcFast(&buffer[(threadIdx.x * numBytesToProcess)], numBytesToProcess);	//this gives me the crc (as datatype int) for the 8bytes the thread is in charge of 
+	if(threadid < nThreads )
+	//	threadlocalcrc[threadIdx.x] = (long) crcFast(&buffer[(threadIdx.x * numBytesToProcess)], numBytesToProcess);	//this gives me the crc (as datatype int) for the 8bytes the thread is in charge of 
+	
+		threadlocalcrc[threadIdx.x] = (long) crcFast(&pointerToData[(globalStartIndex)], numBytesToProcess);	//this gives me the crc (as datatype int) for the 8bytes the thread is in charge of 
+	
 
 
 	//now that data is inside threadlocalcrc, do the combining / reducing 
 
-	unsigned int threadOffset = 2; 
+/*	unsigned int threadOffset = 2; 
 	unsigned int partialcrcOffset = 1;
 	unsigned int crcSourceSize = numBytesToProcess; 	//16 is the size of data that derived the 2nd crc
 
-	while (threadOffset < blockDim.x+1 ){	//plus 1 because we still want the last option where 0 combine with midpoint
+
+	while (threadOffset < nThreads + 1 ){	//plus 1 because we still want the last option where 0 combine with midpoint
 
 		if(threadIdx.x % threadOffset == 0 && threadid < nThreads){
 			threadlocalcrc[(threadIdx.x)] = crc32_combine( 	(unsigned long) threadlocalcrc[(threadIdx.x)], 
@@ -278,20 +286,31 @@ __global__ void crcCalKernel (char* pointerToData, long* partialcrc, unsigned in
 
 		__syncthreads ();
 	}
+*/
 
+	
 
 	//Now, all the CRC would be combined into the first element. Add it to the partialcrc variable that was passed in from the host. Only thread 0 does it 
 	if(threadIdx.x == 0){
+
+		for(int p = i; p < nThreads; p++){
+			threadlocalcrc[(threadIdx.x)] = crc32_combine( 	(unsigned long) threadlocalcrc[(threadIdx.x)], 
+										(unsigned long) threadlocalcrc[(threadIdx.x) + p ], 
+										8 ); 
+	
+		}
+	
+
 		partialcrc[blockIdx.x] = threadlocalcrc[0];
 	}
-
-	/*long a = 123;
+/*
+	long a = 123;
 	long b = 456;
 	partialcrc[0] = a;
-	partialcrc[1] = ++a;
-	partialcrc[2] = b;
-	*/
-
+	//partialcrc[1] = ++a;
+	//partialcrc[2] = b;
+	
+*/
 	return; 
 }
 
