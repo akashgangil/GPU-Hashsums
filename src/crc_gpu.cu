@@ -231,26 +231,29 @@ __global__ void crcCalKernel ( char* pointerToData, long* partialcrc, unsigned i
 	//Note that shared memory max size is 16kb
 	__shared__ unsigned long threadlocalcrc[16];		//This is to store the individual thread's crc - each crc is 4 bytes long (the size of ONE long)
 	unsigned long localanswer = 0;
-
+	unsigned int nThreads = 16; 
 	threadlocalcrc[threadIdx.x] = 0;
+	unsigned int totalDataSize = N + 1;			//compensate for file read error 
+	unsigned int bytesPerThread = totalDataSize / 16;
 
 	crcInit();
 	if( threadIdx.x < 15) {
-		localanswer = crcSlow(pointerToData + (threadIdx.x * 64) , 64);	//this gives me the crc (as datatype int) for the 8bytes the thread is in charge of 
+		localanswer = crcSlow(pointerToData + (threadIdx.x * 64) , bytesPerThread );	//this gives me the crc (as datatype int) for the 8bytes the thread is in charge of 
 		threadlocalcrc[threadIdx.x] = localanswer;
 	} else {
-		localanswer = crcSlow(pointerToData + (threadIdx.x * 64) , 63);	//this gives me the crc (as datatype int) for the 8bytes the thread is in charge of 
+		localanswer = crcSlow(pointerToData + (threadIdx.x * 64) , bytesPerThread -1);	//this gives me the crc (as datatype int) for the 8bytes the thread is in charge of 
 		threadlocalcrc[threadIdx.x] = localanswer;
 	}
 
 	__syncthreads ();
 
-	
-
+/*
+//Below: Naive Sequential complementation 
 	//Combine with thread 0
 	if(threadIdx.x == 0){
 		unsigned long localfinalcopyofcrc = 0;
 
+//		Below statements prove that crc32_combine function is not working properly
 //		unsigned long a = crcSlow(pointerToData, 256);
 //		unsigned long b = crcSlow(pointerToData +256, 256);
 //		unsigned long c = crcSlow(pointerToData +512, 256);
@@ -276,8 +279,41 @@ __global__ void crcCalKernel ( char* pointerToData, long* partialcrc, unsigned i
 		partialcrc[0] = localfinalcopyofcrc; 
 
 	}	
+*/
+	
+	//now that data is inside threadlocalcrc, do the combining / reducing 
 
-	__syncthreads ();
+	unsigned int threadOffset = 2; 
+	unsigned int partialcrcOffset = 1;
+	unsigned int crcSourceSize = bytesPerThread ; 	//nThreads is number threads, N + 1 because of file read error compensation
+
+	while (threadOffset < blockDim.x+1 ){	//plus 1 because we still want the last option where 0 combine with midpoint
+
+		if(threadIdx.x % threadOffset == 0 && threadIdx.x < nThreads - threadOffset){
+			threadlocalcrc[(threadIdx.x)] = crc32_combine( 	(unsigned long) threadlocalcrc[(threadIdx.x)], 
+										(unsigned long) threadlocalcrc[(threadIdx.x) + partialcrcOffset ], 
+										crcSourceSize ); 
+		} else if(threadIdx.x % threadOffset == 0 && threadIdx.x == nThreads - threadOffset){ 
+			threadlocalcrc[(threadIdx.x)] = crc32_combine( 	(unsigned long) threadlocalcrc[(threadIdx.x)], 
+										(unsigned long) threadlocalcrc[(threadIdx.x) + partialcrcOffset ], 
+										crcSourceSize-1 ); 
+
+		}
+
+		threadOffset *= 2;
+		partialcrcOffset *= 2;
+		crcSourceSize *= 2;
+
+		__syncthreads ();
+	}
+
+
+	//Now, all the CRC would be combined into the first element. Add it to the partialcrc variable that was passed in from the host. Only thread 0 does it 
+	if(threadIdx.x == 0){
+		partialcrc[blockIdx.x] = threadlocalcrc[0];
+	}
+
+	//__syncthreads ();
 
 	return; 
 }
