@@ -34,8 +34,12 @@ unsigned long crc32_combine(unsigned long crc1, unsigned long crc2, unsigned lon
 
     if (len2 <= 0)
         return crc1;
- 
-    odd[0] = 0xedb88320UL;      
+
+    /*mpeg reverse poly for crc combine*/ 
+//    odd[0] = 0xedb88320UL;      
+
+    /*scsi reverse poly for crc combine*/
+    odd[0] = 0x82F63B78UL;
 
     row = 1;
     for (n = 1; n < GF2_DIM; n++) {

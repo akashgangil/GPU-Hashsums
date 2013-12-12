@@ -11,7 +11,7 @@
 
 #define INPUT_FILE "input.in"
 #define DATA_SIZE 1000000000
-#define BLOCK_SIZE 4000000
+#define BLOCK_SIZE 1000000
 
 void main(void)
 {
@@ -76,7 +76,7 @@ void main(void)
         block_addr = block_data + (BLOCK_SIZE + 1) * i;
         strncpy(block_addr, input_data + BLOCK_SIZE * i, BLOCK_SIZE);
         *(block_addr + BLOCK_SIZE) = '\0';
-        result[i] = crcSlow(block_addr, BLOCK_SIZE);
+        result[i] = CrcHash(block_addr, BLOCK_SIZE);
     }
     
     int rem = input_data_len % BLOCK_SIZE;
@@ -86,7 +86,7 @@ void main(void)
     if(extra_blocks == 1){
         strncpy(last_block_data, input_data + BLOCK_SIZE * input_blocks, rem);
         *(last_block_data + rem) = '\0';
-        result[input_blocks] = crcSlow(last_block_data, rem);
+        result[input_blocks] = CrcHash(last_block_data, rem);
     }
 
     i=0;
